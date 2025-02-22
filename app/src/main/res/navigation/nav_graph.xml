@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,8 +8,16 @@
         android:name="com.example.appointmentmanagement.ui.auth.LoginFragment"
         android:label="Login">
         <action
+        android:id="@+id/action_loginFragment_to_correctFragment"
+        app:destination="@id/homeFragment"
+        app:popUpTo="@id/loginFragment"
+        app:popUpToInclusive="true"/>
+        <action
             android:id="@+id/action_loginFragment_to_homeFragment"
             app:destination="@id/homeFragment"/>
+        <action
+            android:id="@+id/action_loginFragment_to_adminFragment"
+            app:destination="@id/adminFragment" />
     </fragment>
 
     <fragment
@@ -23,13 +30,19 @@
         android:name="com.example.appointmentmanagement.ui.booking.BookingFragment"
         android:label="Booking" />
 
+
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.appointmentmanagement.ui.profile.ProfileFragment"
-        android:label="Profile" />
+        android:label="Profile">
+        <action
+            android:id="@+id/action_profileFragment_to_loginFragment"
+            app:destination="@id/loginFragment"/>
+    </fragment>
 
     <fragment
         android:id="@+id/adminFragment"
         android:name="com.example.appointmentmanagement.ui.admin.AdminFragment"
         android:label="Admin" />
+
 </navigation>

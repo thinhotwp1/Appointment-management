@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,13 +16,18 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.appointmentmanagement.R;
+import com.example.appointmentmanagement.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginFragment extends Fragment {
     private FirebaseAuth mAuth;
     private EditText etEmail, etPassword;
-    private Button btnLogin, btnRegister;
+    private Button btnRegister;
+    // Thêm biến cho RadioGroup
+    private RadioGroup radioGroupRole;
+    private RadioButton radioUser, radioAdmin;
 
     @Nullable
     @Override
@@ -33,8 +40,12 @@ public class LoginFragment extends Fragment {
         // Ánh xạ View
         etEmail = view.findViewById(R.id.etEmail);
         etPassword = view.findViewById(R.id.etPassword);
-        btnLogin = view.findViewById(R.id.btnLogin);
+        Button btnLogin = view.findViewById(R.id.btnLogin);
         btnRegister = view.findViewById(R.id.btnRegister);
+
+        radioGroupRole = view.findViewById(R.id.radioGroupRole);
+        radioUser = view.findViewById(R.id.radioUser);
+        radioAdmin = view.findViewById(R.id.radioAdmin);
 
         // Xử lý đăng nhập
         btnLogin.setOnClickListener(v -> loginUser());
@@ -45,7 +56,6 @@ public class LoginFragment extends Fragment {
         return view;
     }
 
-    // Hàm đăng nhập
     private void loginUser() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -59,20 +69,45 @@ public class LoginFragment extends Fragment {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        Toast.makeText(getActivity(), "Login successful!", Toast.LENGTH_SHORT).show();
-
-                        // Chuyển đến HomeFragment
-                        Navigation.findNavController(requireView()).navigate(R.id.action_loginFragment_to_homeFragment);
+                        if (user != null) {
+                            fetchUserRoleAndNavigate(user.getUid());
+                        }
                     } else {
                         Toast.makeText(getActivity(), "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
+    // Lấy role & điều hướng
+    private void fetchUserRoleAndNavigate(String userId) {
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String role = documentSnapshot.getString("role");
+                        if ("admin".equals(role)) {
+                            Toast.makeText(getActivity(), "Welcome Admin!", Toast.LENGTH_SHORT).show();
+                            Navigation.findNavController(requireView()).navigate(R.id.action_loginFragment_to_adminFragment);
+                        } else {
+                            Toast.makeText(getActivity(), "Welcome User!", Toast.LENGTH_SHORT).show();
+                            Navigation.findNavController(requireView()).navigate(R.id.action_loginFragment_to_homeFragment);
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), "Role not found!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getActivity(), "Failed to fetch user role", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
     // Hàm đăng ký
     private void registerUser() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
+        String role = radioUser.isChecked() ? "user" : "admin"; // Lấy role từ RadioGroup
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(getActivity(), "Please enter email and password", Toast.LENGTH_SHORT).show();
@@ -82,10 +117,27 @@ public class LoginFragment extends Fragment {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(getActivity(), "Registration successful!", Toast.LENGTH_SHORT).show();
+                        FirebaseUser user = task.getResult().getUser();
+                        if (user != null) {
+                            saveUserToFirestore(user.getUid(), email, role);
+                        }
                     } else {
                         Toast.makeText(getActivity(), "Registration failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
+                });
+    }
+
+    // Lưu user vào Firestore
+    private void saveUserToFirestore(String userId, String email, String role) {
+        FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .set(new User(userId, email, role, "", ""))
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getActivity(), "User registered successfully!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getActivity(), "Failed to save user data", Toast.LENGTH_SHORT).show();
+                    System.out.printf("Failed to save user data: %s%n", e.getMessage());
                 });
     }
 }
