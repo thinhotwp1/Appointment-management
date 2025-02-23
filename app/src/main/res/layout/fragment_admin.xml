@@ -2,19 +2,20 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/app_background"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/app_background">
+    android:padding="16dp">
 
-<Button
+    <TextView
         android:id="@+id/btnManageSchedule"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Manage Schedule"/>
+        android:text="Manage Schedule"
+        android:textColor="@color/white" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvAllAppointments"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="8dp"/>
+        android:paddingTop="8dp" />
 </LinearLayout>

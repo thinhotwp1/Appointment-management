@@ -59,6 +59,19 @@
             android:textColor="@color/white"
             android:textSize="16sp" />
 
+        <EditText
+            android:id="@+id/etWorkingHours"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Working Hours (e.g. 08:00 - 18:00)"
+            android:textSize="16sp"
+            android:padding="10dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:visibility="gone"
+            android:inputType="text" />
+
+
         <Button
             android:id="@+id/btnUpdate"
             android:layout_width="match_parent"

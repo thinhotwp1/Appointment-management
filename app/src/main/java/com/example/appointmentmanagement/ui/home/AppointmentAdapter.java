@@ -50,21 +50,21 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
         switch (appointment.getStatus()) {
             case "waiting":
+            default:
                 holder.imgStatus.setImageResource(R.drawable.ic_waiting);
                 holder.appointmentStatus.setText("Waiting");
                 break;
             case "accept":
                 holder.imgStatus.setImageResource(R.drawable.ic_accept);
-                holder.appointmentStatus.setText("Accept");
+                holder.appointmentStatus.setText("Accepted");
                 break;
             case "success":
                 holder.imgStatus.setImageResource(R.drawable.ic_success);
                 holder.appointmentStatus.setText("Met");
                 break;
             case "cancel":
-            default:
                 holder.imgStatus.setImageResource(R.drawable.ic_cancel);
-                holder.appointmentStatus.setText("Cancel");
+                holder.appointmentStatus.setText("Canceled");
                 break;
         }
 
@@ -72,21 +72,15 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
                 appointment.getStatus().equals("success") ||
                 appointment.getStatus().equals("cancel");
         holder.btnEdit.setEnabled(!isEditDisabled);
-        holder.btnEdit.setAlpha(isEditDisabled ? 0.5f : 1.0f); // Làm mờ nút nếu bị disable
-
-//        boolean isDeleteDisabled = appointment.getStatus().equals("accept") ||
-//                appointment.getStatus().equals("success") ||
-//                appointment.getStatus().equals("cancel");
-//        holder.btnDelete.setEnabled(!isDeleteDisabled);
-//        holder.btnDelete.setAlpha(isDeleteDisabled ? 0.5f : 1.0f);
+        holder.btnEdit.setAlpha(isEditDisabled ? 0.5f : 1.0f);
 
         holder.btnEdit.setOnClickListener(v -> {
             if (!isEditDisabled) listener.onEdit(appointment);
         });
 
-//        holder.btnDelete.setOnClickListener(v -> {
-//            if (!isDeleteDisabled) listener.onDelete(appointment);
-//        });
+        holder.btnDelete.setOnClickListener(v -> {
+            listener.onDelete(appointment);
+        });
     }
 
 

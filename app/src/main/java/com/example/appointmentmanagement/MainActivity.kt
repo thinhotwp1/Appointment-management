@@ -2,47 +2,64 @@ package com.example.appointmentmanagement
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI
+import com.example.appointmentmanagement.viewmodel.UserViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
+    private lateinit var bottomNav: BottomNavigationView
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main) // Gán layout chính
+        setContentView(R.layout.activity_main)
 
-        // Khởi tạo Firebase Auth
         auth = FirebaseAuth.getInstance()
+        bottomNav = findViewById(R.id.bottomNavigationView)
 
-        // Lấy NavHostFragment
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // Lấy BottomNavigationView
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+        bottomNav.visibility = View.GONE // Ẩn tạm thời khi chưa có role
 
-        // Kiểm tra xem người dùng đã đăng nhập chưa
         if (auth.currentUser == null) {
-            // Chưa đăng nhập → Chuyển đến LoginFragment
             navController.navigate(R.id.loginFragment)
-            bottomNav.visibility = View.GONE // Ẩn thanh bottom navigation
         } else {
-            // Đã đăng nhập → Hiển thị bottom navigation
-            bottomNav.visibility = View.VISIBLE
-            NavigationUI.setupWithNavController(bottomNav, navController)
+            userViewModel.userRole.observe(this, Observer { role ->
+                if (role != null) {
+                    val startFragment = if (role == "admin") R.id.adminFragment else R.id.homeFragment
+                    if (navController.currentDestination?.id != startFragment) {
+                        navController.navigate(startFragment)
+                    }
+                    bottomNav.visibility = View.VISIBLE
+                }
+            })
         }
 
-        // Lắng nghe sự thay đổi của Fragment để ẩn/hiện bottom navigation
+        // Ẩn/hiện BottomNavigationView dựa trên Fragment hiện tại
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            if (destination.id == R.id.loginFragment) {
-                bottomNav.visibility = View.GONE
-            } else {
-                bottomNav.visibility = View.VISIBLE
+            bottomNav.visibility = if (destination.id == R.id.loginFragment) View.GONE else View.VISIBLE
+        }
+
+        bottomNav.setOnItemSelectedListener { item ->
+            val role = userViewModel.userRole.value ?: return@setOnItemSelectedListener false
+
+            val destination = when (item.itemId) {
+                R.id.homeFragment -> if (role == "admin") R.id.adminFragment else R.id.homeFragment
+                R.id.bookingFragment -> if (role == "admin") R.id.adminBookingFragment else R.id.bookingFragment
+                R.id.profileFragment -> R.id.profileFragment
+                else -> return@setOnItemSelectedListener false
             }
+
+            if (navController.currentDestination?.id != destination) {
+                navController.navigate(destination)
+            }
+            true
         }
     }
 }

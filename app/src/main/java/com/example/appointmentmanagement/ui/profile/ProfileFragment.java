@@ -2,9 +2,11 @@ package com.example.appointmentmanagement.ui.profile;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,16 +14,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.example.appointmentmanagement.R;
-import com.example.appointmentmanagement.model.Appointment;
-import com.example.appointmentmanagement.ui.home.AppointmentAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -29,8 +29,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ProfileFragment extends Fragment {
-    private EditText etUserName, etEmail, etPhone;
+    private EditText etUserName, etEmail, etPhone, etWorkingHours;
     private ImageView ivProfileImage;
     private Button btnUpdate, btnChangeAvatar, btnLogout;
     private FirebaseFirestore db;
@@ -38,6 +44,8 @@ public class ProfileFragment extends Fragment {
     private String userId;
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri imageUri;
+    private static final String WORKING_HOURS_FILE = "working_hours.txt";
+    private String userRole;
 
     @SuppressLint("MissingInflatedId")
     @Nullable
@@ -50,6 +58,7 @@ public class ProfileFragment extends Fragment {
         etUserName = view.findViewById(R.id.etUserName);
         etEmail = view.findViewById(R.id.etEmail);
         etPhone = view.findViewById(R.id.etPhone);
+        etWorkingHours = view.findViewById(R.id.etWorkingHours); // Thêm trường giờ làm việc
         btnUpdate = view.findViewById(R.id.btnUpdate);
         btnLogout = view.findViewById(R.id.btnLogout); // Thêm nút logout
 
@@ -70,12 +79,39 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    // Đọc giờ làm việc từ file cục bộ
+    private String loadWorkingHoursFromFile() {
+        try {
+            FileInputStream fis = getContext().openFileInput(WORKING_HOURS_FILE);
+            int size = fis.available();
+            byte[] buffer = new byte[size];
+            fis.read(buffer);
+            fis.close();
+            return new String(buffer);
+        } catch (IOException e) {
+            Log.e("ProfileFragment", "Error loading working hours", e);
+            return "09:00 - 18:00"; // Giá trị mặc định nếu không có file
+        }
+    }
+
+    // Load dữ liệu khi khởi tạo
     private void loadUserProfile() {
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         etUserName.setText(documentSnapshot.getString("name"));
                         etPhone.setText(documentSnapshot.getString("phone"));
+                        userRole = documentSnapshot.getString("role");
+
+                        if ("admin".equals(userRole)) {
+                            etWorkingHours.setVisibility(View.VISIBLE);
+                            String workingHours = documentSnapshot.getString("workingHours");
+                            etWorkingHours.setText(workingHours);
+                            saveWorkingHoursToFile(workingHours); // Cập nhật file cục bộ
+                        } else {
+                            etWorkingHours.setVisibility(View.GONE);
+                        }
+
                         String imageUrl = documentSnapshot.getString("avatar");
                         if (imageUrl != null) {
                             Glide.with(this).load(imageUrl).into(ivProfileImage);
@@ -88,11 +124,33 @@ public class ProfileFragment extends Fragment {
     private void updateUserInfo() {
         String name = etUserName.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
+        String workingHours = etWorkingHours.getText().toString().trim();
+
+        // Dữ liệu cập nhật
+        Map<String, Object> updateData = new HashMap<>();
+        updateData.put("name", name);
+        updateData.put("phone", phone);
+
+        if ("admin".equals(userRole)) {
+            updateData.put("workingHours", workingHours);
+            saveWorkingHoursToFile(workingHours); // Lưu vào file cục bộ
+        }
 
         db.collection("users").document(userId)
-                .update("name", name, "phone", phone)
+                .update(updateData)
                 .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Profile Updated", Toast.LENGTH_SHORT).show())
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Update Failed", Toast.LENGTH_SHORT).show());
+    }
+
+    // Lưu giờ làm việc vào file cục bộ
+    private void saveWorkingHoursToFile(String workingHours) {
+        try {
+            FileOutputStream fos = getContext().openFileOutput(WORKING_HOURS_FILE, Context.MODE_PRIVATE);
+            fos.write(workingHours.getBytes());
+            fos.close();
+        } catch (IOException e) {
+            Log.e("ProfileFragment", "Error saving working hours", e);
+        }
     }
 
     private void selectImage() {

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.appointmentmanagement.R;
 import com.example.appointmentmanagement.model.Appointment;
+import com.example.appointmentmanagement.ui.adapter.AdminAppointmentAdapter;
 import com.example.appointmentmanagement.viewmodel.SharedViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;

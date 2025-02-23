@@ -1,6 +1,7 @@
-package com.example.appointmentmanagement.ui.admin;
+package com.example.appointmentmanagement.ui.adapter;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.appointmentmanagement.R;
@@ -87,37 +90,38 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
 
     @SuppressLint("NotifyDataSetChanged")
     private void changeStatus(Appointment appointment, ViewHolder holder) {
-        // Chuyển đổi trạng thái
-        String newStatus;
-        switch (appointment.getStatus()) {
-            case "waiting":
-                newStatus = "accept";
-                break;
-            case "accept":
-                newStatus = "success";
-                break;
-            case "success":
-                newStatus = "cancel";
-                break;
-            default:
-                newStatus = "pending";
-                break;
-        }
+        // Danh sách trạng thái
+        String[] statuses = {"waiting", "accept", "success", "cancel"};
 
-        // Cập nhật trạng thái trong Firestore
-        FirebaseFirestore.getInstance().collection("appointments")
-                .document(appointment.getId())
-                .update("status", newStatus)
-                .addOnSuccessListener(aVoid -> {
-                    appointment.setStatus(newStatus);
-                    setStatusIcon(holder, newStatus);
-                    notifyDataSetChanged();
+        // Hiển thị Popup chọn trạng thái
+        AlertDialog.Builder builder = new AlertDialog.Builder(holder.itemView.getContext());
+        builder.setTitle("Choose status")
+                .setItems(statuses, (dialog, which) -> {
+                    String newStatus = statuses[which]; // Trạng thái được chọn
+
+                    // Cập nhật vào Firestore
+                    FirebaseFirestore.getInstance().collection("appointments")
+                            .document(appointment.getId())
+                            .update("status", newStatus)
+                            .addOnSuccessListener(aVoid -> {
+                                appointment.setStatus(newStatus);
+                                setStatusIcon(holder, newStatus);
+                                notifyDataSetChanged();
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(holder.itemView.getContext(), "Error!", Toast.LENGTH_SHORT).show()
+                            );
                 });
+
+        // Hiển thị Dialog
+        builder.create().show();
     }
+
 
     private void setStatusIcon(ViewHolder holder, String status) {
         switch (status) {
             case "waiting":
+            default:
                 holder.imgStatus.setImageResource(R.drawable.ic_waiting);
                 holder.tvStatus.setText("Waiting");
                 break;
@@ -127,7 +131,7 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
                 break;
             case "success":
                 holder.imgStatus.setImageResource(R.drawable.ic_success);
-                holder.tvStatus.setText("Success");
+                holder.tvStatus.setText("Met");
                 break;
             case "cancel":
                 holder.imgStatus.setImageResource(R.drawable.ic_cancel);

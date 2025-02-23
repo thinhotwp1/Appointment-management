@@ -20,6 +20,8 @@ import com.example.appointmentmanagement.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import androidx.lifecycle.ViewModelProvider;
+import com.example.appointmentmanagement.viewmodel.UserViewModel;
 
 public class LoginFragment extends Fragment {
     private FirebaseAuth mAuth;
@@ -28,6 +30,7 @@ public class LoginFragment extends Fragment {
     // Thêm biến cho RadioGroup
     private RadioGroup radioGroupRole;
     private RadioButton radioUser, radioAdmin;
+    private UserViewModel userViewModel;
 
     @Nullable
     @Override
@@ -36,6 +39,7 @@ public class LoginFragment extends Fragment {
 
         // Khởi tạo FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
         // Ánh xạ View
         etEmail = view.findViewById(R.id.etEmail);
@@ -78,7 +82,6 @@ public class LoginFragment extends Fragment {
                 });
     }
 
-    // Lấy role & điều hướng
     private void fetchUserRoleAndNavigate(String userId) {
         FirebaseFirestore.getInstance().collection("users")
                 .document(userId)
@@ -86,6 +89,10 @@ public class LoginFragment extends Fragment {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String role = documentSnapshot.getString("role");
+
+                        // Gọi ViewModel để cập nhật role
+                        userViewModel.refreshUserRole(userId);
+
                         if ("admin".equals(role)) {
                             Toast.makeText(getActivity(), "Welcome Admin!", Toast.LENGTH_SHORT).show();
                             Navigation.findNavController(requireView()).navigate(R.id.action_loginFragment_to_adminFragment);
@@ -102,8 +109,6 @@ public class LoginFragment extends Fragment {
                 });
     }
 
-
-    // Hàm đăng ký
     private void registerUser() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -127,11 +132,12 @@ public class LoginFragment extends Fragment {
                 });
     }
 
-    // Lưu user vào Firestore
+    // Save user into Firestore
     private void saveUserToFirestore(String userId, String email, String role) {
+        String workingHours = role.equals("admin") ? "08:00 - 18:00" : "";
         FirebaseFirestore.getInstance().collection("users")
                 .document(userId)
-                .set(new User(userId, email, role, "", ""))
+                .set(new User(userId, email, role, workingHours, ""))
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getActivity(), "User registered successfully!", Toast.LENGTH_SHORT).show();
                 })
