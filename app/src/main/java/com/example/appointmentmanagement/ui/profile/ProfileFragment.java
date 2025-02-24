@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,9 +19,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.bumptech.glide.Glide;
+import com.example.appointmentmanagement.MainActivity;
 import com.example.appointmentmanagement.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,6 +33,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -89,7 +94,7 @@ public class ProfileFragment extends Fragment {
             return new String(buffer);
         } catch (IOException e) {
             Log.e("ProfileFragment", "Error loading working hours", e);
-            return "09:00 - 18:00"; // Giá trị mặc định nếu không có file
+            return "09:00 - 18:00";
         }
     }
 
@@ -105,7 +110,7 @@ public class ProfileFragment extends Fragment {
                             etWorkingHours.setVisibility(View.VISIBLE);
                             String workingHours = documentSnapshot.getString("workingHours");
                             etWorkingHours.setText(workingHours);
-                            saveWorkingHoursToFile(workingHours); // Cập nhật file cục bộ
+                            saveWorkingHoursToFile(workingHours);
                         } else {
                             etWorkingHours.setVisibility(View.GONE);
                         }
@@ -124,7 +129,6 @@ public class ProfileFragment extends Fragment {
         String phone = etPhone.getText().toString().trim();
         String workingHours = etWorkingHours.getText().toString().trim();
 
-        // Dữ liệu cập nhật
         Map<String, Object> updateData = new HashMap<>();
         updateData.put("name", name);
         updateData.put("phone", phone);
@@ -180,7 +184,14 @@ public class ProfileFragment extends Fragment {
 
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();
-        Toast.makeText(getContext(), "Here we go again", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
+
+        SharedPreferences preferences = getActivity().getSharedPreferences("your_prefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.clear();
+        editor.apply();
+
+        clearCache(getContext());
 
         if (getActivity() != null) {
             BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.bottomNavigationView);
@@ -189,7 +200,44 @@ public class ProfileFragment extends Fragment {
             }
         }
 
-        NavHostFragment.findNavController(ProfileFragment.this)
-                .navigate(R.id.action_profileFragment_to_loginFragment);
+        NavController navController = NavHostFragment.findNavController(ProfileFragment.this);
+        navController.navigate(R.id.loginFragment, null, new NavOptions.Builder()
+                .setPopUpTo(R.id.bottomNavigationView, true)  // Xóa toàn bộ stack navigation
+                .setLaunchSingleTop(true)
+                .build());
+
+        restartApp();
     }
+    private void clearCache(Context context) {
+        try {
+            File cacheDir = context.getCacheDir();
+            deleteDir(cacheDir);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (String child : children) {
+                boolean success = deleteDir(new File(dir, child));
+                if (!success) {
+                    return false;
+                }
+            }
+            return dir.delete();
+        } else if (dir != null && dir.isFile()) {
+            return dir.delete();
+        }
+        return false;
+    }
+    private void restartApp() {
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        getActivity().finishAffinity();
+    }
+
+
 }

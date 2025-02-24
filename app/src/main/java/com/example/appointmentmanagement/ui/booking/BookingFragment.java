@@ -40,8 +40,8 @@ public class BookingFragment extends Fragment {
     private String selectedDate = "", selectedTime = "";
     private List<String> services;
     private final List<String> allTimeSlots = Arrays.asList(
-            "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
+            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30","17:00","17:30"
     );
 
     @Nullable
@@ -92,7 +92,7 @@ public class BookingFragment extends Fragment {
             return new String(buffer);
         } catch (IOException e) {
             Log.e("BookingFragment", "Error loading working hours", e);
-            return "09:00 - 18:00"; // Giá trị mặc định nếu không có file
+            return "09:00 - 18:00";
         }
     }
 
@@ -128,14 +128,14 @@ public class BookingFragment extends Fragment {
                             bookedTimes.add(time);
                         }
                     }
-                    generateTimeSlots(bookedTimes); // Tạo danh sách giờ làm việc thực tế
+                    generateTimeSlots(bookedTimes);
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Error checking booked times!", Toast.LENGTH_SHORT).show());
     }
 
     private void generateTimeSlots(List<String> bookedTimes) {
-        String workingHours = loadWorkingHoursFromFile(); // Đọc từ file hoặc Firestore
+        String workingHours = loadWorkingHoursFromFile();
         String[] parts = workingHours.split(" - ");
 
         if (parts.length < 2) {
@@ -158,7 +158,7 @@ public class BookingFragment extends Fragment {
                 if (!bookedTimes.contains(slot)) {
                     availableSlots.add(slot);
                 }
-                calendar.add(Calendar.MINUTE, 30); // Tạo slot mỗi 30 phút
+                calendar.add(Calendar.MINUTE, 30);
             }
         } catch (Exception e) {
             Log.e("BookingFragment", "Error parsing time", e);
@@ -173,7 +173,7 @@ public class BookingFragment extends Fragment {
     private void showTimeSlotPicker(List<String> bookedTimes) {
         List<String> availableTimes = new ArrayList<>();
         for (String time : allTimeSlots) {
-            if (!bookedTimes.contains(time)) {
+            if (bookedTimes.contains(time)) {
                 availableTimes.add(time);
             }
         }

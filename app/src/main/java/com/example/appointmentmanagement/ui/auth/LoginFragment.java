@@ -27,7 +27,6 @@ public class LoginFragment extends Fragment {
     private FirebaseAuth mAuth;
     private EditText etEmail, etPassword;
     private Button btnRegister;
-    // Thêm biến cho RadioGroup
     private RadioGroup radioGroupRole;
     private RadioButton radioUser, radioAdmin;
     private UserViewModel userViewModel;
@@ -37,11 +36,9 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
-        // Khởi tạo FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
-        // Ánh xạ View
         etEmail = view.findViewById(R.id.etEmail);
         etPassword = view.findViewById(R.id.etPassword);
         Button btnLogin = view.findViewById(R.id.btnLogin);
@@ -51,10 +48,8 @@ public class LoginFragment extends Fragment {
         radioUser = view.findViewById(R.id.radioUser);
         radioAdmin = view.findViewById(R.id.radioAdmin);
 
-        // Xử lý đăng nhập
         btnLogin.setOnClickListener(v -> loginUser());
 
-        // Xử lý đăng ký
         btnRegister.setOnClickListener(v -> registerUser());
 
         return view;

@@ -65,7 +65,7 @@ public class AdminFragment extends Fragment {
                                     String userName = userDoc.getString("email");
                                     appointment.setUserEmail(userName);
                                 } else {
-                                    appointment.setUserEmail("UnknownUser@user.com");
+                                    appointment.setUserEmail("unknown@user.com");
                                 }
                                 adapter.notifyDataSetChanged();
                             });
