@@ -40,11 +40,9 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Appointment appointment = appointmentList.get(position);
 
-        // Nếu đã có userName thì hiển thị, nếu không thì tải từ Firestore
         if (appointment.getUserEmail() != null) {
             holder.tvUserName.setText("User: " + appointment.getUserEmail());
         } else {
-            // Lấy thông tin user từ Firestore theo userId
             FirebaseFirestore.getInstance().collection("users")
                     .document(appointment.getUserId())
                     .get()
@@ -90,16 +88,13 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
 
     @SuppressLint("NotifyDataSetChanged")
     private void changeStatus(Appointment appointment, ViewHolder holder) {
-        // Danh sách trạng thái
         String[] statuses = {"waiting", "accept", "success", "cancel"};
 
-        // Hiển thị Popup chọn trạng thái
         AlertDialog.Builder builder = new AlertDialog.Builder(holder.itemView.getContext());
         builder.setTitle("Choose status")
                 .setItems(statuses, (dialog, which) -> {
-                    String newStatus = statuses[which]; // Trạng thái được chọn
+                    String newStatus = statuses[which];
 
-                    // Cập nhật vào Firestore
                     FirebaseFirestore.getInstance().collection("appointments")
                             .document(appointment.getId())
                             .update("status", newStatus)
@@ -113,7 +108,6 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
                             );
                 });
 
-        // Hiển thị Dialog
         builder.create().show();
     }
 

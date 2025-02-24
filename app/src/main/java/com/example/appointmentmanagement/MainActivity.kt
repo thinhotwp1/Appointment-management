@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        bottomNav.visibility = View.GONE // Ẩn tạm thời khi chưa có role
+        bottomNav.visibility = View.GONE
 
         if (auth.currentUser == null) {
             navController.navigate(R.id.loginFragment)
@@ -41,7 +41,6 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        // Ẩn/hiện BottomNavigationView dựa trên Fragment hiện tại
         navController.addOnDestinationChangedListener { _, destination, _ ->
             bottomNav.visibility = if (destination.id == R.id.loginFragment) View.GONE else View.VISIBLE
         }

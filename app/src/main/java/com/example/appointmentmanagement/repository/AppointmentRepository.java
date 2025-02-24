@@ -16,7 +16,6 @@ public class AppointmentRepository {
         void onFailure(Exception e);
     }
 
-    // Lấy danh sách lịch hẹn
     public void getAppointments(String userId, AppointmentCallback callback) {
         db.collection("appointments")
             .whereEqualTo("userId", userId)
@@ -35,7 +34,6 @@ public class AppointmentRepository {
             });
     }
 
-    // Lưu lịch hẹn mới vào Firestore
     public void addAppointment(Appointment appointment, AppointmentCallback callback) {
         db.collection("appointments")
             .document(appointment.getId())

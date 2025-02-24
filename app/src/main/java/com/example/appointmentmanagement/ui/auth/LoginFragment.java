@@ -90,7 +90,6 @@ public class LoginFragment extends Fragment {
                     if (documentSnapshot.exists()) {
                         String role = documentSnapshot.getString("role");
 
-                        // Gọi ViewModel để cập nhật role
                         userViewModel.refreshUserRole(userId);
 
                         if ("admin".equals(role)) {
@@ -112,7 +111,7 @@ public class LoginFragment extends Fragment {
     private void registerUser() {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
-        String role = radioUser.isChecked() ? "user" : "admin"; // Lấy role từ RadioGroup
+        String role = radioUser.isChecked() ? "user" : "admin";
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(getActivity(), "Please enter email and password", Toast.LENGTH_SHORT).show();
@@ -132,7 +131,6 @@ public class LoginFragment extends Fragment {
                 });
     }
 
-    // Save user into Firestore
     private void saveUserToFirestore(String userId, String email, String role) {
         String workingHours = role.equals("admin") ? "08:00 - 18:00" : "";
         FirebaseFirestore.getInstance().collection("users")

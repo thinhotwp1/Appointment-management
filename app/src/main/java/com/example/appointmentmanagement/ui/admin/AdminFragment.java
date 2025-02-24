@@ -62,8 +62,8 @@ public class AdminFragment extends Fragment {
                     db.collection("users").document(userId).get()
                             .addOnSuccessListener(userDoc -> {
                                 if (userDoc.exists()) {
-                                    String userName = userDoc.getString("email"); // Hoặc "name" nếu có
-                                    appointment.setUserEmail(userName); // Cập nhật tên người dùng
+                                    String userName = userDoc.getString("email");
+                                    appointment.setUserEmail(userName);
                                 } else {
                                     appointment.setUserEmail("UnknownUser@user.com");
                                 }
@@ -77,7 +77,6 @@ public class AdminFragment extends Fragment {
             }
         });
     }
-
     private void updateBookingStatus(String appointmentId, String newStatus) {
         db.collection("appointments").document(appointmentId)
                 .update("status", newStatus)

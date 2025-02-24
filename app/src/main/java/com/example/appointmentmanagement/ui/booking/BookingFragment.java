@@ -55,7 +55,6 @@ public class BookingFragment extends Fragment {
         tvSelectedDateTime = view.findViewById(R.id.tvSelectedDateTime);
         repository = new AppointmentRepository();
 
-        // Khởi tạo danh sách dịch vụ
         services = new ArrayList<>();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, services);
         spinnerServices.setAdapter(adapter);
@@ -112,7 +111,6 @@ public class BookingFragment extends Fragment {
                 year, month, day
         );
 
-        // Chặn ngày quá khứ
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         datePickerDialog.show();
     }
@@ -185,7 +183,6 @@ public class BookingFragment extends Fragment {
             return;
         }
 
-        // Hiển thị danh sách giờ trống
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(requireContext());
         builder.setTitle("Select a time slot");
 

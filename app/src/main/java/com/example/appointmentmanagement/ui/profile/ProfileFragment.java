@@ -58,9 +58,9 @@ public class ProfileFragment extends Fragment {
         etUserName = view.findViewById(R.id.etUserName);
         etEmail = view.findViewById(R.id.etEmail);
         etPhone = view.findViewById(R.id.etPhone);
-        etWorkingHours = view.findViewById(R.id.etWorkingHours); // Thêm trường giờ làm việc
+        etWorkingHours = view.findViewById(R.id.etWorkingHours);
         btnUpdate = view.findViewById(R.id.btnUpdate);
-        btnLogout = view.findViewById(R.id.btnLogout); // Thêm nút logout
+        btnLogout = view.findViewById(R.id.btnLogout);
 
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
@@ -74,12 +74,11 @@ public class ProfileFragment extends Fragment {
 
         btnUpdate.setOnClickListener(v -> updateUserInfo());
         btnChangeAvatar.setOnClickListener(v -> selectImage());
-        btnLogout.setOnClickListener(v -> logoutUser()); // Xử lý khi nhấn nút đăng xuất
+        btnLogout.setOnClickListener(v -> logoutUser());
 
         return view;
     }
 
-    // Đọc giờ làm việc từ file cục bộ
     private String loadWorkingHoursFromFile() {
         try {
             FileInputStream fis = getContext().openFileInput(WORKING_HOURS_FILE);
@@ -94,7 +93,6 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    // Load dữ liệu khi khởi tạo
     private void loadUserProfile() {
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -133,7 +131,7 @@ public class ProfileFragment extends Fragment {
 
         if ("admin".equals(userRole)) {
             updateData.put("workingHours", workingHours);
-            saveWorkingHoursToFile(workingHours); // Lưu vào file cục bộ
+            saveWorkingHoursToFile(workingHours);
         }
 
         db.collection("users").document(userId)
@@ -142,7 +140,6 @@ public class ProfileFragment extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Update Failed", Toast.LENGTH_SHORT).show());
     }
 
-    // Lưu giờ làm việc vào file cục bộ
     private void saveWorkingHoursToFile(String workingHours) {
         try {
             FileOutputStream fos = getContext().openFileOutput(WORKING_HOURS_FILE, Context.MODE_PRIVATE);
@@ -185,7 +182,6 @@ public class ProfileFragment extends Fragment {
         FirebaseAuth.getInstance().signOut();
         Toast.makeText(getContext(), "Here we go again", Toast.LENGTH_SHORT).show();
 
-        // Ẩn BottomNavigationView để tránh lỗi UI
         if (getActivity() != null) {
             BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.bottomNavigationView);
             if (bottomNavigationView != null) {
@@ -193,7 +189,6 @@ public class ProfileFragment extends Fragment {
             }
         }
 
-        // Go to login screen
         NavHostFragment.findNavController(ProfileFragment.this)
                 .navigate(R.id.action_profileFragment_to_loginFragment);
     }

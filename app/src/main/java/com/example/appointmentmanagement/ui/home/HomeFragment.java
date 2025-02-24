@@ -43,7 +43,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         rvAppointments = view.findViewById(R.id.rvAppointments);
-        tvWelcome = view.findViewById(R.id.tvWelcome); // Ánh xạ TextView
+        tvWelcome = view.findViewById(R.id.tvWelcome);
         rvAppointments.setLayoutManager(new LinearLayoutManager(getContext()));
 
         repository = new AppointmentRepository();
@@ -84,7 +84,7 @@ public class HomeFragment extends Fragment {
 
         Query query;
         if ("admin".equals(role)) {
-            query = appointmentsRef; // Admin lấy tất cả lịch hẹn
+            query = appointmentsRef;
         } else {
             query = appointmentsRef.whereEqualTo("userId", userId); // User chỉ lấy lịch hẹn của họ
         }

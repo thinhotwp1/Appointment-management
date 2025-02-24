@@ -10,7 +10,6 @@ public class Appointment {
     private String status;
 
     public Appointment() {
-        // Constructor mặc định cần thiết cho Firestore
     }
 
     public Appointment(String id, String userId, String service, String date, String time, String status) {

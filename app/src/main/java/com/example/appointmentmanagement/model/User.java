@@ -9,7 +9,6 @@ public class User {
     private String workingHours;
 
     public User() {
-        // Constructor mặc định cần thiết cho Firestore
     }
 
     public String getWorkingHours() {
