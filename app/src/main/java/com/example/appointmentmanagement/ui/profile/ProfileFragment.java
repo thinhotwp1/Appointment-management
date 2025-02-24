@@ -40,10 +40,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * ProfileFragment handles user profile management, including viewing and updating profile details,
+ * changing the profile avatar, and logging out.
+ */
 public class ProfileFragment extends Fragment {
+    // UI components
     private EditText etUserName, etEmail, etPhone, etWorkingHours;
     private ImageView ivProfileImage;
     private Button btnUpdate, btnChangeAvatar, btnLogout;
+    // Firebase instances
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private String userId;
@@ -57,7 +63,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
-
+        // Initialize UI components
         ivProfileImage = view.findViewById(R.id.ivProfileImage);
         btnChangeAvatar = view.findViewById(R.id.btnChangeAvatar);
         etUserName = view.findViewById(R.id.etUserName);
@@ -67,10 +73,12 @@ public class ProfileFragment extends Fragment {
         btnUpdate = view.findViewById(R.id.btnUpdate);
         btnLogout = view.findViewById(R.id.btnLogout);
 
+        // Initialize Firebase instances
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+        // Load user details if logged in
         if (user != null) {
             userId = user.getUid();
             etEmail.setText(user.getEmail());
@@ -98,6 +106,9 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Loads user's profile information from Firestore.
+     */
     private void loadUserProfile() {
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -124,6 +135,9 @@ public class ProfileFragment extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load profile", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Updates user's profile details in Firestore.
+     */
     private void updateUserInfo() {
         String name = etUserName.getText().toString().trim();
         String phone = etPhone.getText().toString().trim();
@@ -182,6 +196,10 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+
+    /**
+     * Logs out the user and navigates to the login screen.
+     */
     private void logoutUser() {
         FirebaseAuth.getInstance().signOut();
         Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
@@ -232,6 +250,10 @@ public class ProfileFragment extends Fragment {
         }
         return false;
     }
+
+    /**
+     * Restarts the application.
+     */
     private void restartApp() {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

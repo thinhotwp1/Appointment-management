@@ -18,15 +18,23 @@ import com.example.appointmentmanagement.model.Appointment;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.List;
 
+/**
+ * RecyclerView Adapter for displaying and managing appointments in the admin panel.
+ */
 public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointmentAdapter.ViewHolder> {
     private final List<Appointment> appointmentList;
     private final Context context;
 
+    /**
+     * Constructor for initializing the adapter with appointment data.
+     *
+     * @param appointmentList List of appointments to display.
+     * @param context         The application context.
+     */
     public AdminAppointmentAdapter(List<Appointment> appointmentList, Context context) {
         this.appointmentList = appointmentList;
         this.context = context;
     }
-
 
     @NonNull
     @Override
@@ -40,6 +48,7 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Appointment appointment = appointmentList.get(position);
 
+        // Set user email if available; otherwise, fetch from Firestore
         if (appointment.getUserEmail() != null) {
             holder.tvUserName.setText("User: " + appointment.getUserEmail());
         } else {
@@ -48,7 +57,7 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
                     .get()
                     .addOnSuccessListener(doc -> {
                         if (doc.exists()) {
-                            String userName = doc.getString("email"); // Hoặc "name"
+                            String userName = doc.getString("email"); // Fetch user email
                             appointment.setUserEmail(userName);
                             holder.tvUserName.setText("User: " + userName);
                         } else {
@@ -58,11 +67,14 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
                     .addOnFailureListener(e -> holder.tvUserName.setText("User: Error"));
         }
 
+        // Display appointment details: service, date, and time
         holder.tvBookingInfo.setText("Service: " + appointment.getService() +
                 " - Date: " + appointment.getDate() + " - Time: " + appointment.getTime());
 
+        // Set status icon and text based on appointment status
         setStatusIcon(holder, appointment.getStatus());
 
+        // Handle status change button click
         holder.btnChangeStatus.setOnClickListener(v -> changeStatus(appointment, holder));
     }
 
@@ -71,6 +83,9 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
         return appointmentList.size();
     }
 
+    /**
+     * ViewHolder class to hold UI components for each appointment item.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvUserName, tvBookingInfo, tvStatus;
         ImageView imgStatus;
@@ -86,6 +101,12 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
         }
     }
 
+    /**
+     * Displays a dialog allowing the admin to change the appointment status.
+     *
+     * @param appointment The appointment whose status needs to be updated.
+     * @param holder      The ViewHolder of the selected item.
+     */
     @SuppressLint("NotifyDataSetChanged")
     private void changeStatus(Appointment appointment, ViewHolder holder) {
         String[] statuses = {"waiting", "accept", "success", "cancel"};
@@ -95,13 +116,14 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
                 .setItems(statuses, (dialog, which) -> {
                     String newStatus = statuses[which];
 
+                    // Update status in Firestore
                     FirebaseFirestore.getInstance().collection("appointments")
                             .document(appointment.getId())
                             .update("status", newStatus)
                             .addOnSuccessListener(aVoid -> {
                                 appointment.setStatus(newStatus);
                                 setStatusIcon(holder, newStatus);
-                                notifyDataSetChanged();
+                                notifyDataSetChanged(); // Refresh RecyclerView
                             })
                             .addOnFailureListener(e ->
                                     Toast.makeText(holder.itemView.getContext(), "Error!", Toast.LENGTH_SHORT).show()
@@ -111,7 +133,12 @@ public class AdminAppointmentAdapter extends RecyclerView.Adapter<AdminAppointme
         builder.create().show();
     }
 
-
+    /**
+     * Sets the status icon and text based on the appointment status.
+     *
+     * @param holder The ViewHolder for the appointment item.
+     * @param status The status of the appointment.
+     */
     private void setStatusIcon(ViewHolder holder, String status) {
         switch (status) {
             case "waiting":

@@ -24,12 +24,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
+        android:visibility="gone"
         android:text="Just choose role if register" />
 
     <RadioGroup
         android:id="@+id/radioGroupRole"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:orientation="horizontal">
 
         <RadioButton

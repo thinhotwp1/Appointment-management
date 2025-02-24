@@ -12,9 +12,11 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import com.example.appointmentmanagement.R;
 import com.example.appointmentmanagement.model.Appointment;
 import com.example.appointmentmanagement.repository.AppointmentRepository;
@@ -33,39 +35,43 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class BookingFragment extends Fragment {
-    private Spinner spinnerServices;
-    private Button btnConfirmBooking, btnPickDateTime;
-    private TextView tvSelectedDateTime;
-    private AppointmentRepository repository;
-    private String selectedDate = "", selectedTime = "";
-    private List<String> services;
-    private final List<String> allTimeSlots = Arrays.asList(
-            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30","17:00","17:30"
-    );
+    private Spinner spinnerServices; // Dropdown list for selecting services
+    private Button btnConfirmBooking, btnPickDateTime; // Buttons for booking confirmation and date selection
+    private TextView tvSelectedDateTime; // Displays the selected date and time
+    private AppointmentRepository repository; // Repository for managing appointment data
+    private String selectedDate = "", selectedTime = ""; // Stores the selected date and time
+    private List<String> services; // List of available services
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_booking, container, false);
 
+        // Initialize UI components
         spinnerServices = view.findViewById(R.id.spinnerServices);
         btnConfirmBooking = view.findViewById(R.id.btnConfirmBooking);
         btnPickDateTime = view.findViewById(R.id.btnPickDateTime);
         tvSelectedDateTime = view.findViewById(R.id.tvSelectedDateTime);
         repository = new AppointmentRepository();
 
+        // Initialize service list and set up adapter for the spinner
         services = new ArrayList<>();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, services);
         spinnerServices.setAdapter(adapter);
+
+        // Load available services from Firestore
         loadServicesFromFirestore(adapter);
 
+        // Set up event listeners
         btnPickDateTime.setOnClickListener(v -> showDatePicker());
         btnConfirmBooking.setOnClickListener(v -> saveAppointment());
 
         return view;
     }
 
+    /**
+     * Fetches the list of available services from Firestore and updates the dropdown.
+     */
     private void loadServicesFromFirestore(ArrayAdapter<String> adapter) {
         FirebaseFirestore.getInstance().collection("services").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -76,12 +82,16 @@ public class BookingFragment extends Fragment {
                             services.add(serviceName);
                         }
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged(); // Notify adapter of data change
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Error loading services!", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Loads working hours from a local file.
+     * If an error occurs, returns default hours (09:00 - 18:00).
+     */
     private String loadWorkingHoursFromFile() {
         try {
             FileInputStream fis = getContext().openFileInput("working_hours.txt");
@@ -92,10 +102,13 @@ public class BookingFragment extends Fragment {
             return new String(buffer);
         } catch (IOException e) {
             Log.e("BookingFragment", "Error loading working hours", e);
-            return "09:00 - 18:00";
+            return "09:00 - 18:00"; // Default working hours
         }
     }
 
+    /**
+     * Opens a date picker dialog for the user to select an appointment date.
+     */
     private void showDatePicker() {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -106,7 +119,7 @@ public class BookingFragment extends Fragment {
                 getContext(),
                 (view, selectedYear, selectedMonth, selectedDay) -> {
                     selectedDate = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
-                    loadAvailableTimeSlots();
+                    loadAvailableTimeSlots(); // Load available time slots for the selected date
                 },
                 year, month, day
         );
@@ -115,6 +128,9 @@ public class BookingFragment extends Fragment {
         datePickerDialog.show();
     }
 
+    /**
+     * Fetches already booked time slots from Firestore and updates available slots.
+     */
     private void loadAvailableTimeSlots() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("appointments")
@@ -134,6 +150,9 @@ public class BookingFragment extends Fragment {
                         Toast.makeText(getContext(), "Error checking booked times!", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Generates available time slots based on working hours and booked times.
+     */
     private void generateTimeSlots(List<String> bookedTimes) {
         String workingHours = loadWorkingHoursFromFile();
         String[] parts = workingHours.split(" - ");
@@ -168,16 +187,11 @@ public class BookingFragment extends Fragment {
         showTimeSlotPicker(availableSlots);
     }
 
-
+    /**
+     * Displays a dialog for the user to select an available time slot.
+     */
     @SuppressLint("SetTextI18n")
-    private void showTimeSlotPicker(List<String> bookedTimes) {
-        List<String> availableTimes = new ArrayList<>();
-        for (String time : allTimeSlots) {
-            if (bookedTimes.contains(time)) {
-                availableTimes.add(time);
-            }
-        }
-
+    private void showTimeSlotPicker(List<String> availableTimes) {
         if (availableTimes.isEmpty()) {
             Toast.makeText(getContext(), "No available slots on this day!", Toast.LENGTH_SHORT).show();
             return;
@@ -195,6 +209,9 @@ public class BookingFragment extends Fragment {
         builder.show();
     }
 
+    /**
+     * Saves the appointment to Firestore after validating input fields.
+     */
     private void saveAppointment() {
         if (spinnerServices.getSelectedItem() == null) {
             Toast.makeText(getContext(), "Please select a service!", Toast.LENGTH_SHORT).show();
@@ -207,17 +224,10 @@ public class BookingFragment extends Fragment {
         }
 
         String selectedService = spinnerServices.getSelectedItem().toString().trim();
-        if (selectedService.isEmpty()) {
-            Toast.makeText(getContext(), "Invalid service!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String appointmentId = UUID.randomUUID().toString();
 
-        Appointment appointment = new Appointment(
-                appointmentId, userId, selectedService, selectedDate, selectedTime, "waiting"
-        );
+        Appointment appointment = new Appointment(appointmentId, userId, selectedService, selectedDate, selectedTime, "waiting");
 
         repository.addAppointment(appointment, new AppointmentRepository.AppointmentCallback() {
             @Override

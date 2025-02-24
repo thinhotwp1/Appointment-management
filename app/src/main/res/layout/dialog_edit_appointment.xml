@@ -5,30 +5,45 @@
     android:background="@drawable/app_background"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/etService"
+    <TextView
+        android:id="@+id/edit_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColorHint="@color/white"
-        android:hint="Service Name"/>
+        android:hint="Name"/>
 
-    <EditText
-        android:id="@+id/etDate"
+    <Spinner
+        android:id="@+id/spinner_service"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColorHint="@color/white"
-        android:hint="Date"/>
+        android:layout_height="wrap_content"/>
 
-    <EditText
-        android:id="@+id/etTime"
+    <!-- Thêm TextView hiển thị ngày giờ đã chọn -->
+    <TextView
+        android:id="@+id/tv_selected_date_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColorHint="@color/white"
-        android:hint="Time"/>
+        android:text="Selected Date &amp; Time"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:padding="8dp"/>
 
     <Button
-        android:id="@+id/btnSave"
+        android:id="@+id/btn_select_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Date"/>
+
+    <Button
+        android:id="@+id/btn_select_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Time"/>
+
+    <Button
+        android:id="@+id/btn_save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Save"/>
+
 </LinearLayout>
